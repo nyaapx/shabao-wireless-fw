@@ -41,40 +41,41 @@ static void extcb5(EXTDriver *extp, expchannel_t channel); /* IRQ line to the NR
  * Structure holding the interrupt settings
  */
 static const EXTConfig extcfg = {
-  {
-   {EXT_CH_MODE_DISABLED, NULL},
-   {EXT_CH_MODE_DISABLED, NULL},
-   {EXT_CH_MODE_DISABLED, NULL},
-   {EXT_CH_MODE_DISABLED, NULL},
-   {EXT_CH_MODE_DISABLED, NULL},
-   {EXT_CH_MODE_FALLING_EDGE | EXT_CH_MODE_AUTOSTART, extcb5},
-   {EXT_CH_MODE_DISABLED, NULL},
-   {EXT_CH_MODE_DISABLED, NULL},
-   {EXT_CH_MODE_DISABLED, NULL},
-   {EXT_CH_MODE_DISABLED, NULL},
-   {EXT_CH_MODE_DISABLED, NULL},
-   {EXT_CH_MODE_DISABLED, NULL},
-   {EXT_CH_MODE_DISABLED, NULL},
-   {EXT_CH_MODE_DISABLED, NULL},
-   {EXT_CH_MODE_DISABLED, NULL},
-   {EXT_CH_MODE_DISABLED, NULL},
-  },
-  EXT_MODE_EXTI(0,
-                0,
-                0,
-                0,
-                0,
-                EXT_MODE_GPIOC,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0)
+    {
+        {EXT_CH_MODE_DISABLED, NULL},
+        {EXT_CH_MODE_DISABLED, NULL},
+        {EXT_CH_MODE_DISABLED, NULL},
+        {EXT_CH_MODE_DISABLED, NULL},
+        {EXT_CH_MODE_DISABLED, NULL},
+        {EXT_CH_MODE_FALLING_EDGE | EXT_CH_MODE_AUTOSTART, extcb5},
+        {EXT_CH_MODE_DISABLED, NULL},
+        {EXT_CH_MODE_DISABLED, NULL},
+        {EXT_CH_MODE_DISABLED, NULL},
+        {EXT_CH_MODE_DISABLED, NULL},
+        {EXT_CH_MODE_DISABLED, NULL},
+        {EXT_CH_MODE_DISABLED, NULL},
+        {EXT_CH_MODE_DISABLED, NULL},
+        {EXT_CH_MODE_DISABLED, NULL},
+        {EXT_CH_MODE_DISABLED, NULL},
+        {EXT_CH_MODE_DISABLED, NULL},
+    }
+//    ,
+//    EXT_MODE_EXTI(0,
+//                  0,
+//                  0,
+//                  0,
+//                  0,
+//                  EXT_MODE_GPIOC,
+//                  0,
+//                  0,
+//                  0,
+//                  0,
+//                  0,
+//                  0,
+//                  0,
+//                  0,
+//                  0,
+//                  0)
 };
 
 /* 
@@ -82,33 +83,35 @@ static const EXTConfig extcfg = {
  */
 void EXTInit(void)
 {
-	/*
-	 * Setup NRF24L01 IRQ pad.
-	 */
-	palSetPadMode(NRF_PORT_CE_IRQ, NRF_PORT_IRQ, PAL_MODE_INPUT);	
+    /*
+     * Setup NRF24L01 IRQ pad.
+     */
+    palSetPadMode(NRF_PORT_CE_IRQ, NRF_PORT_IRQ, PAL_MODE_INPUT);
 
-	/*
-   * Setup interrupts using the structures above.
-	 */
-	extStart(&EXTD1, &extcfg);
+    /*
+     * Setup interrupts using the structures above.
+     */
+    extStart(&EXTD1, &extcfg);
 
-	/*
-	 * Enable interrupts.
-   */
-	extChannelEnable(&EXTD1, 5);
+    /*
+     * Enable interrupts.
+     */
+    extChannelEnable(&EXTD1, 5);
 }
 
 /*
  * Triggered when the NRF24L01 triggers an interrupt
  */
-static void extcb5(EXTDriver *extp, expchannel_t channel) {
-  (void)extp;
-  (void)channel;
+static void extcb5(EXTDriver *extp, expchannel_t channel)
+{
+    (void)extp;
+    (void)channel;
 
-	/*
-	 * Call interrupt handler
-	 */
-  chSysLockFromIsr();
-	NRFReportIRQ();
-  chSysUnlockFromIsr();
+    /*
+     * Call interrupt handler
+     */
+    chSysLockFromISR();
+    NRFReportIRQ();
+    chSysUnlockFromISR();
 }
+

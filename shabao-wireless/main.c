@@ -37,6 +37,11 @@
 #include "suspend.h"
 #include "hook.h"
 
+/* shabao-wireless */
+#include "fc_ext.h"
+#include "fc_spi.h"
+#include "fc_nrf24l01.h"
+
 
 /* -------------------------
  *   TMK host driver defs
@@ -96,6 +101,46 @@ void hook_usb_suspend_loop(void) {
 //   }
 // }
 
+/*
+ * Toggle LED 2
+ */
+static void ledtoggle2(void){
+    palTogglePad(IOPORT2, 8);
+}
+
+
+/*
+ * NRF24L01 test
+ */
+void NRFtest(void)
+{
+    uint8_t data_out[33];
+
+    /*
+     * Test sending packet
+     */
+    memcpy(data_out, "Test 123\r\n", strlen("Test 123\r\n"));
+    NRFSendData(data_out);
+
+    /*
+     * Sleep and show we are still alive
+     */
+    ledtoggle2();
+    chThdSleepMilliseconds(100);
+}
+
+
+static THD_WORKING_AREA(nrftest_work_area, 128);
+static THD_FUNCTION(nrftest, arg)
+{
+    (void) arg;
+
+    chRegSetThreadName("nrf_test");
+    while(true) {
+        NRFtest();
+    }
+}
+
 
 
 /* Main thread
@@ -107,6 +152,17 @@ int main(void) {
 
   // TESTING
   // chThdCreateStatic(waBlinkerThread, sizeof(waBlinkerThread), NORMALPRIO, blinkerThread, NULL);
+
+  /* peripheral */
+
+  /* shabao-wireless */
+  EXTInit();
+  SPIInit();
+  NRFInit();
+
+  /* nrf test */
+  chThdCreateStatic(nrftest_work_area, sizeof(nrftest_work_area), NORMALPRIO, nrftest, NULL);
+
 
   hook_early_init();
 

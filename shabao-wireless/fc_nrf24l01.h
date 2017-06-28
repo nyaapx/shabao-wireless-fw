@@ -26,6 +26,49 @@
 */
 
 /*
- * Start Threads
+ * Define IRQ an CE PORT/PAD
+ * Make sure to setup the IRQ pad with the EXT driver as well
  */
-void startThreads(void);
+#define NRF_PORT_CE_IRQ	IOPORT1
+#define NRF_PORT_IRQ		2
+#define NRF_PORT_CE			3
+
+/*
+ * Initialize the NRF24L01 Wifi chip.
+ */
+void NRFInit(void);
+
+/*
+ * Set channel 
+ * Frequency is F0= 2400 + RF_CH [MHz]
+ */
+void NRFSetChannel(uint8_t chan);
+
+/*
+ * Handle the IRQ signal, unlock the Semaphores or set flags. 
+ */
+void NRFHandleIrq(void);
+
+/*
+ * NRF24L01 test
+ */
+void NRFtest(void);
+
+/*
+ * Function to send data
+ * This functions blocks until data is available
+ * The send output buffer needs to be NRF_FIFO_BYTES(32) bytes wide
+ */
+void NRFSendData(uint8_t *inBuf);
+
+/*
+ * Routine to unlock IRQ handling.
+ */
+void NRFReportIRQ(void);
+
+/*
+ * Function to receive data from FIFO
+ * This functions blocks until data is available
+ * The output buffer needs to be NRF_FIFO_BYTES(32) bytes wide
+ */
+void NRFReceiveData(uint8_t *pipeNr, uint8_t *outBuf);

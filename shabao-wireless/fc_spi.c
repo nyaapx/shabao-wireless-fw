@@ -48,7 +48,10 @@ static mutex_t SPIMtx; /* Mutex */
  * Maximum speed SPI configuration (18MHz, CPHA=0, CPOL=0, MSb first).
  */
 static const SPIConfig hs_spicfg = {
-	NULL
+    NULL,
+    IOPORT1,
+    4,
+    0
 };
 
 /*

@@ -8,16 +8,13 @@ TMK_DIR = ../tmk_keyboard/tmk_core
 TARGET_DIR = .
 
 # project specific files
-SRC =	matrix.c 	\
-	    led.c		\
-		usb_main.c	\
-		main.c
+SRC =	$(wildcard *.c)  
 
-ifdef KEYMAP
-    SRC := keymap_$(KEYMAP).c $(SRC)
-else
-    SRC := keymap_plain.c $(SRC)
-endif
+#ifdef KEYMAP
+#    SRC := keymap_$(KEYMAP).c $(SRC)
+#else
+#    SRC := keymap_plain.c $(SRC)
+#endif
 
 CONFIG_H = config.h
 
