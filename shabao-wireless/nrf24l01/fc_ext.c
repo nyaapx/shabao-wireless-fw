@@ -90,7 +90,7 @@ void EXTInit(void)
 	/*
    * Setup interrupts using the structures above.
 	 */
-  extStart(&EXTD1, &extcfg);
+	extStart(&EXTD1, &extcfg);
 
 	/*
 	 * Enable interrupts.

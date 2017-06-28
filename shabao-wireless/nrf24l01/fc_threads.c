@@ -34,7 +34,7 @@
 /*
  * NRF thread
  */
-static WORKING_AREA(NRFThreadWA, 256);
+static THD_WORKING_AREA(NRFThreadWA, 256);
 static msg_t NRFThread(void *arg) {
 	chRegSetThreadName("NRFThread");
 	(void)arg;

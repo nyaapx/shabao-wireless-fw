@@ -36,9 +36,9 @@
 /*
  * Binary semaphore, to lock access to the send and receive queue of the NRF24L01
  */
-BinarySemaphore NRFSemIRQ;
-BinarySemaphore	NRFSemRX;
-BinarySemaphore	NRFSemTX;
+semaphore_t NRFSemIRQ;
+semaphore_t	NRFSemRX;
+semaphore_t	NRFSemTX;
 
 /*
  * Status flags
@@ -302,7 +302,7 @@ void NRFHandleIrq(void)
 	/*
 	 * Wait for the semaphore
 	 */
-	chBSemWait(&NRFSemIRQ);
+	chSemWait(&NRFSemIRQ);
 
 	/*
 	 * Execute NOP to retrieve the status register
@@ -316,7 +316,7 @@ void NRFHandleIrq(void)
 	if((NRF_STAT_RX_DR & status) != 0){
 		reset_flags |= NRF_STAT_RX_DR; /* Set flag for reset */	
 
-		chBSemSignal(&NRFSemRX);
+		chSemSignal(&NRFSemRX);
 	}
 
 	/*
@@ -336,7 +336,7 @@ void NRFHandleIrq(void)
 		/*
 		 * Signal the semaphore because sending has failed
 		 */
-		chBSemSignal(&NRFSemTX);
+		chSemSignal(&NRFSemTX);
 	}
 
 	/*
@@ -349,13 +349,13 @@ void NRFHandleIrq(void)
 		/*
 		 * Lock the semaphore, because the TX queue is full
 		 */
-		chBSemWait(&NRFSemTX);
+		chSemWait(&NRFSemTX);
 
 	} else {
 		/*
 		 * TX Queue not full.
 		 */
-		chBSemSignal(&NRFSemTX);
+		chSemSignal(&NRFSemTX);
 	}
 
 	/*
@@ -373,7 +373,7 @@ void NRFReportIRQ(void)
 		/*
 		 * Unlock the IRQ Semaphore
 		 */
-		chBSemSignalI(&NRFSemIRQ);
+		chSemSignalI(&NRFSemIRQ);
 	}
 }
 
@@ -446,7 +446,7 @@ void NRFReceiveData(uint8_t *pipeNr, uint8_t *inBuf)
 	/*
 	 * Wait for binary semaphore NRFSemRX
 	 */
-	chBSemWait(&NRFSemRX);
+	chSemWait(&NRFSemRX);
 
 	/*
 	 * Bring CE down, in order to execute the read operation
@@ -475,7 +475,7 @@ void NRFReceiveData(uint8_t *pipeNr, uint8_t *inBuf)
 	 * When the FIFO is empty the semaphore stays taken until the next interrupt
 	 */
 	if(NRFRXFifoEmpty() == FALSE) {
-		chBSemSignal(&NRFSemRX);
+		chSemSignal(&NRFSemRX);
 	}
 }
 
@@ -489,7 +489,7 @@ void NRFSendData(uint8_t *outBuf)
 	/*
 	 * Wait for binary semaphore NRFSemTX
 	 */
-	chBSemWait(&NRFSemTX);
+	chSemWait(&NRFSemTX);
 
 	/*
 	 * Put CE low.
@@ -517,9 +517,9 @@ void NRFInit(void)
 	/*
 	 * Initialize the FIFO semaphores 
 	 */
-	chBSemInit(&NRFSemIRQ, TRUE);		/* Locks the thread until an IRQ arrives														*/
-	chBSemInit(&NRFSemRX, TRUE);		/* Semaphore initialized as taken, because no data is ready yet			*/ 
-	chBSemInit(&NRFSemTX, FALSE);		/* Semaphore initialized as free, because transmit channel is open	*/ 
+	chSemObjectInit(&NRFSemIRQ, TRUE);		/* Locks the thread until an IRQ arrives														*/
+	chSemObjectInit(&NRFSemRX, TRUE);		/* Semaphore initialized as taken, because no data is ready yet			*/
+	chSemObjectInit(&NRFSemTX, FALSE);		/* Semaphore initialized as free, because transmit channel is open	*/
 
 	/*
 	 * Set configuration registers

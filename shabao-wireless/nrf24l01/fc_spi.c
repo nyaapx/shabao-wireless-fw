@@ -35,7 +35,7 @@
 /*
  * Mutex to lock output buffer
  */
-static Mutex					SPIMtx; /* Mutex */
+static mutex_t SPIMtx; /* Mutex */
 
 /*
  * SPI TX and RX buffers.
@@ -48,10 +48,7 @@ static Mutex					SPIMtx; /* Mutex */
  * Maximum speed SPI configuration (18MHz, CPHA=0, CPOL=0, MSb first).
  */
 static const SPIConfig hs_spicfg = {
-	NULL,
-	GPIOA,
-	GPIOA_SPI1NSS,
-	0
+	NULL
 };
 
 /*
@@ -65,13 +62,13 @@ void SPIInit(void)
 	palSetPadMode(IOPORT1, 5, PAL_MODE_STM32_ALTERNATE_PUSHPULL);     /* SCK. */
 	palSetPadMode(IOPORT1, 6, PAL_MODE_STM32_ALTERNATE_PUSHPULL);     /* MISO.*/
 	palSetPadMode(IOPORT1, 7, PAL_MODE_STM32_ALTERNATE_PUSHPULL);     /* MOSI.*/
-	palSetPadMode(IOPORT1, GPIOA_SPI1NSS, PAL_MODE_OUTPUT_PUSHPULL);
-	palSetPad(IOPORT1, GPIOA_SPI1NSS);
+	palSetPadMode(IOPORT1, 4, PAL_MODE_OUTPUT_PUSHPULL);              /* NSS. */
+	palSetPad(IOPORT1, 4);
 
 	/*
 	 * Initialize Mutex
 	 */
-	chMtxInit(&SPIMtx); /* Mutex initialization before use */
+	chMtxObjectInit(&SPIMtx); /* Mutex initialization before use */
 }
 
 /*
@@ -90,7 +87,7 @@ int SPIExchangeData(SPIDriver *spip, uint8_t *tx, uint8_t *rx, size_t size) {
 	spiExchange(spip, size, tx, rx);  /* Atomic transfer operations.      */
 	spiUnselect(spip);                /* Slave Select de-assertion.       */
 	spiReleaseBus(spip);              /* Ownership release.               */
-	chMtxUnlock();
+	chMtxUnlock(&SPIMtx);
 
 	return 0;
 }
@@ -131,7 +128,7 @@ int SPISendData(SPIDriver *spip, uint8_t *tx, size_t size) {
 	spiUnselect(spip);                /* Slave Select de-assertion.       */
 	spiStop(spip);
 	spiReleaseBus(spip);              /* Ownership release.               */
-	chMtxUnlock();
+	chMtxUnlock(&SPIMtx);
 
 	return 0;
 }
@@ -152,7 +149,7 @@ int SPIReceiveData(SPIDriver *spip, uint8_t *rx, size_t size) {
 	spiReceive(spip, size, rx);
 	spiUnselect(spip);                /* Slave Select de-assertion.       */
 	spiReleaseBus(spip);              /* Ownership release.               */
-	chMtxUnlock();
+	chMtxUnlock(&SPIMtx);
 
 	return 0;
 }
