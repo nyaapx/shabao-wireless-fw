@@ -25,28 +25,33 @@
     for full details of how and when the exception can be applied.
 */
 
-/*
- * Initialize the SPI interface
- */
-void SPIInit(void);
+#ifndef FC_SPI_H_
+#define FC_SPI_H_
 
-/*
- * SPI bus exchange routine
- */
-int SPIExchangeData(SPIDriver *spip, uint8_t *tx, uint8_t *rx, size_t size);
+#include <stdint.h>
 
-/*
- * SPI bus exchange routine
+/**
+ * @brief   Initialize the SPI interface
  */
-int SPIExchangeDataI(SPIDriver *spip, uint8_t *tx, uint8_t *rx, size_t size);
+void spi1_plfm_init (void);
 
-/*
- * SPI bus send routine
+/**
+ * @brief   SPI sync send
  */
-int SPISendData(SPIDriver *spip, uint8_t *tx, size_t size);
+void spi1_tx (uint8_t *p_tx, size_t size);
 
-/*
- * SPI bus receive routine
+/**
+ * @brief   SPI sync receive
  */
-int SPIReceiveData(SPIDriver *spip, uint8_t *rx, size_t size); 
+void spi1_rx (uint8_t *p_rx, size_t size);
 
+/**
+ * @brief   SPI sync exchange
+ */
+void spi1_exchange (const uint8_t *p_tx, uint8_t *p_rx, size_t size);
+
+void spi1_tx_and_rx (uint8_t tx_byte, uint8_t *p_rx, size_t rx_size);
+
+void spi1_tx_and_tx (uint8_t tx_byte, const uint8_t *p_tx, size_t tx_size);
+
+#endif /* FC_SPI_H_ */

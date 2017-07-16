@@ -30,130 +30,85 @@
 
 #include "fc_spi.h"
 
-#include <string.h>
-
-/*
- * Mutex to lock output buffer
- */
-static mutex_t SPIMtx; /* Mutex */
-
-/*
- * SPI TX and RX buffers.
- */
-//#define		SPI_BUF_SIZE 128
-//static char txbuf[SPI_BUF_SIZE];
-//static char rxbuf[SPI_BUF_SIZE];
+#define _SPI1_PORT       IOPORT1
+#define _SPI1_PIN_SCK    5
+#define _SPI1_PIN_MISO   6
+#define _SPI1_PIN_MOSI   7
+#define _SPI1_PIN_NSS    4
 
 /*
  * Maximum speed SPI configuration (18MHz, CPHA=0, CPOL=0, MSb first).
  */
-static const SPIConfig hs_spicfg = {
+static const SPIConfig _spi1_cfg = {
     NULL,
-    IOPORT1,
-    4,
-    0
+    _SPI1_PORT,
+    _SPI1_PIN_NSS,
+    0x0020,                  /* STM32 SPI CR0, BR[5:3]=4 (72/16=4.5MHz) */
+    0x0000                   /* STM32 SPI CR1 */
 };
 
-/*
- * Initialize the SPI interface
- */
-void SPIInit(void)
+/******************************************************************************/
+void spi1_plfm_init (void)
 {
-	/*
-	 * SPI1 I/O pins setup.
-	 */
-	palSetPadMode(IOPORT1, 5, PAL_MODE_STM32_ALTERNATE_PUSHPULL);     /* SCK. */
-	palSetPadMode(IOPORT1, 6, PAL_MODE_STM32_ALTERNATE_PUSHPULL);     /* MISO.*/
-	palSetPadMode(IOPORT1, 7, PAL_MODE_STM32_ALTERNATE_PUSHPULL);     /* MOSI.*/
-	palSetPadMode(IOPORT1, 4, PAL_MODE_OUTPUT_PUSHPULL);              /* NSS. */
-	palSetPad(IOPORT1, 4);
-
-	/*
-	 * Initialize Mutex
-	 */
-	chMtxObjectInit(&SPIMtx); /* Mutex initialization before use */
+    palSetPadMode(_SPI1_PORT, _SPI1_PIN_SCK, PAL_MODE_STM32_ALTERNATE_PUSHPULL);
+    palSetPadMode(_SPI1_PORT, _SPI1_PIN_MISO, PAL_MODE_STM32_ALTERNATE_OPENDRAIN);
+    palSetPadMode(_SPI1_PORT, _SPI1_PIN_MOSI, PAL_MODE_STM32_ALTERNATE_PUSHPULL);
+    palSetPadMode(_SPI1_PORT, _SPI1_PIN_NSS, PAL_MODE_OUTPUT_PUSHPULL);
+    palSetPad(_SPI1_PORT, _SPI1_PIN_NSS);
 }
 
-/*
- * SPI bus exchange routine
- */
-int SPIExchangeData(SPIDriver *spip, uint8_t *tx, uint8_t *rx, size_t size) {
-
-	chMtxLock(&SPIMtx);
-
-	/*
-	 * Do exchange between device and MCU.
-	 */
-	spiAcquireBus(spip);              /* Acquire ownership of the bus.    */
-	spiStart(spip, &hs_spicfg);       /* Setup transfer parameters.       */
-	spiSelect(spip);                  /* Slave Select assertion.          */
-	spiExchange(spip, size, tx, rx);  /* Atomic transfer operations.      */
-	spiUnselect(spip);                /* Slave Select de-assertion.       */
-	spiReleaseBus(spip);              /* Ownership release.               */
-	chMtxUnlock(&SPIMtx);
-
-	return 0;
+/******************************************************************************/
+void spi1_exchange (const uint8_t *p_tx, uint8_t *p_rx, size_t size)
+{
+    spiAcquireBus(&SPID1);
+    spiStart(&SPID1, &_spi1_cfg);
+    spiSelect(&SPID1);
+    spiExchange(&SPID1, size, p_tx, p_rx);
+    spiUnselect(&SPID1);
+    spiReleaseBus(&SPID1);
 }
 
-/*
- * SPI bus exchange routine
- */
-int SPIExchangeDataI(SPIDriver *spip, uint8_t *tx, uint8_t *rx, size_t size) {
-	//chMtxLock(&SPIMtx);
-
-	/*
-	 * Do exchange between device and MCU.
-	 */
-	//spiAcquireBus(spip);              /* Acquire ownership of the bus.    */
-	//spiSelectI(spip);                  /* Slave Select assertion.          */
-	spiStartExchangeI(spip, size, tx, rx);  /* Atomic transfer operations.      */
-	//spiUnselectI(spip);                /* Slave Select de-assertion.       */
-	//spiReleaseBus(spip);              /* Ownership release.               */
-	//chMtxUnlock();
-
-	return 0;
+/******************************************************************************/
+void spi1_tx (uint8_t *p_tx, size_t size)
+{
+    spiAcquireBus(&SPID1);
+    spiStart(&SPID1, &_spi1_cfg);
+    spiSelect(&SPID1);
+    spiSend(&SPID1, size, p_tx);
+    spiUnselect(&SPID1);
+    spiStop(&SPID1);
+    spiReleaseBus(&SPID1);
 }
 
-/*
- * SPI bus send routine
- */
-int SPISendData(SPIDriver *spip, uint8_t *tx, size_t size) {
-
-	chMtxLock(&SPIMtx);
-
-	/*
-	 * Do exchange between device and MCU.
-	 */
-	spiAcquireBus(spip);              /* Acquire ownership of the bus.    */
-	spiStart(spip, &hs_spicfg);       /* Setup transfer parameters.       */
-	spiSelect(spip);                  /* Slave Select assertion.          */
-	spiSend(spip, size, tx);					/* Send command											*/
-	spiUnselect(spip);                /* Slave Select de-assertion.       */
-	spiStop(spip);
-	spiReleaseBus(spip);              /* Ownership release.               */
-	chMtxUnlock(&SPIMtx);
-
-	return 0;
+/******************************************************************************/
+void spi1_rx (uint8_t *p_rx, size_t size)
+{
+    spiAcquireBus(&SPID1);
+    spiStart(&SPID1, &_spi1_cfg);
+    spiSelect(&SPID1);
+    spiReceive(&SPID1, size, p_rx);
+    spiUnselect(&SPID1);
+    spiReleaseBus(&SPID1);
 }
 
-/*
- * SPI bus receive routine
- */
-int SPIReceiveData(SPIDriver *spip, uint8_t *rx, size_t size) {
-
-	chMtxLock(&SPIMtx);
-
-	/*
-	 * Do exchange between device and MCU.
-	 */
-	spiAcquireBus(spip);              /* Acquire ownership of the bus.    */
-	spiStart(spip, &hs_spicfg);       /* Setup transfer parameters.       */
-	spiSelect(spip);                  /* Slave Select assertion.          */
-	spiReceive(spip, size, rx);
-	spiUnselect(spip);                /* Slave Select de-assertion.       */
-	spiReleaseBus(spip);              /* Ownership release.               */
-	chMtxUnlock(&SPIMtx);
-
-	return 0;
+void spi1_tx_and_rx (uint8_t tx_byte, uint8_t *p_rx, size_t rx_size)
+{
+    spiAcquireBus(&SPID1);
+    spiStart(&SPID1, &_spi1_cfg);
+    spiSelect(&SPID1);
+    spiSend(&SPID1, 1, &tx_byte);
+    spiReceive(&SPID1, rx_size, p_rx);
+    spiUnselect(&SPID1);
+    spiReleaseBus(&SPID1);
 }
 
+void spi1_tx_and_tx (uint8_t tx_byte, const uint8_t *p_tx, size_t tx_size)
+{
+    spiAcquireBus(&SPID1);
+    spiStart(&SPID1, &_spi1_cfg);
+    spiSelect(&SPID1);
+    spiSend(&SPID1, 1, &tx_byte);
+    spiSend(&SPID1, tx_size, p_tx);
+    spiUnselect(&SPID1);
+    spiReleaseBus(&SPID1);
+}

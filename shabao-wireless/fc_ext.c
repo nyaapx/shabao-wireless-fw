@@ -30,7 +30,8 @@
 
 #include <string.h>
 
-#include "fc_nrf24l01.h"
+#include "nrf24l01.h"
+#include "nrf24l01_cfg.h"
 
 /*
  * Predeclarations of callback functions
@@ -86,7 +87,7 @@ void EXTInit(void)
     /*
      * Setup NRF24L01 IRQ pad.
      */
-    palSetPadMode(NRF_PORT_CE_IRQ, NRF_PORT_IRQ, PAL_MODE_INPUT);
+    palSetPadMode(NRF24L01_PORT_CE_IRQ, NRF24L01_PIN_IRQ, PAL_MODE_INPUT);
 
     /*
      * Setup interrupts using the structures above.
@@ -111,7 +112,7 @@ static void extcb5(EXTDriver *extp, expchannel_t channel)
      * Call interrupt handler
      */
     chSysLockFromISR();
-    NRFReportIRQ();
+    nrf24l01_report_irq();
     chSysUnlockFromISR();
 }
 

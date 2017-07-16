@@ -40,8 +40,7 @@
 /* shabao-wireless */
 #include "fc_ext.h"
 #include "fc_spi.h"
-#include "fc_nrf24l01.h"
-
+#include "nrf24l01.h"
 
 /* -------------------------
  *   TMK host driver defs
@@ -112,15 +111,12 @@ static void ledtoggle2(void){
 /*
  * NRF24L01 test
  */
+#include <string.h>
 void NRFtest(void)
 {
-    uint8_t data_out[33];
+    const char *str_data = "Test 123\r\n";
 
-    /*
-     * Test sending packet
-     */
-    memcpy(data_out, "Test 123\r\n", strlen("Test 123\r\n"));
-    NRFSendData(data_out);
+    nrf24l01_tx((uint8_t*) str_data, strlen(str_data));
 
     /*
      * Sleep and show we are still alive
@@ -156,9 +152,13 @@ int main(void) {
   /* peripheral */
 
   /* shabao-wireless */
+  //todo: reliably reset nrf24l01 by cutting its power
   EXTInit();
-  SPIInit();
-  NRFInit();
+  spi1_plfm_init();
+  nrf24l01_init();
+  if (0 != nrf24l01_test()) {
+      while (1);
+  }
 
   /* nrf test */
   chThdCreateStatic(nrftest_work_area, sizeof(nrftest_work_area), NORMALPRIO, nrftest, NULL);

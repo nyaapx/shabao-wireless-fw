@@ -8,7 +8,10 @@ TMK_DIR = ../tmk_keyboard/tmk_core
 TARGET_DIR = .
 
 # project specific files
-SRC =	$(wildcard *.c)  
+SRC =	$(wildcard *.c)	\
+		$(wildcard ../nrf24l01_drv/*.c)
+
+USERINC = ../nrf24l01_drv
 
 #ifdef KEYMAP
 #    SRC := keymap_$(KEYMAP).c $(SRC)
@@ -24,7 +27,7 @@ CONFIG_H = config.h
 # BOARD = GENERIC_STM32_F103
 
 # GENERIC STM32F103C8T6 board - no bootloader (programmer over serial or SWD)
-OPT_DEFS = -Og
+OPT_DEFS = -O0
 MCU_LDSCRIPT = STM32F103x8
 BOARD = GENERIC_STM32_F103
 
@@ -69,7 +72,7 @@ ARMV = 7
 ## BOOTMAGIC is not supported on STM32 chips yet.
 MOUSEKEY_ENABLE = yes	# Mouse keys
 EXTRAKEY_ENABLE = yes	# Audio control and System control
-# CONSOLE_ENABLE = yes	# Console for debug
+CONSOLE_ENABLE = yes	# Console for debug
 COMMAND_ENABLE = yes    # Commands for debug and configuration
 SLEEP_LED_ENABLE = no   # Breathing sleep LED during USB suspend
 NKRO_ENABLE = yes	    # USB Nkey Rollover
